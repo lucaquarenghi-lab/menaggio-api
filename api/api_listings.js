@@ -11,7 +11,7 @@ export default async function handler(req, res) {
     console.error('Scrape error:', err.message);
     return res.status(500).json({ ok: false, error: err.message, listings: [] });
   }
-}
+} 
 
 const BASE = 'https://www.immobiliaremenaggio.com';
 const HEADERS = {

@@ -10,7 +10,7 @@ export default async function handler(req, res) {
   if (!name || !email || !property) {
     return res.status(400).json({ error: 'Dati mancanti' });
   }
-
+ 
   try {
     const response = await fetch('https://api.resend.com/emails', {
       method: 'POST',
