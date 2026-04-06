@@ -16,14 +16,15 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Deploy to Keliweb via SFTP
-        uses: pressable/github-action-sftp@main
+        uses: appleboy/sftp-action@master
         with:
           host: ${{ secrets.SFTP_HOST }}
           port: ${{ secrets.SFTP_PORT }}
           username: ${{ secrets.SFTP_USER }}
           password: ${{ secrets.SFTP_PASSWORD }}
-          localPath: ./immobiliare_sidebar.html
-          remotePath: /public_html/wp-content/plugins/immobiliare_sidebar.html
+          local_path: ./immobiliare_sidebar.html
+          remote_path: /public_html/wp-content/plugins/immobiliare_sidebar.html
+          rm: true
 
       - name: Deployment notification
         run: echo "✅ Deploy completato su Keliweb!"
