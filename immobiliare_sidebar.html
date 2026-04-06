@@ -753,8 +753,20 @@ Usa gli ID da questo elenco: p1=Villetta Carlazzo(285k), p2=Villetta Menaggio(ri
 
 Scegli massimo 3 immobili pertinenti alla richiesta. Se chiedono "economico/sotto X" filtra per prezzo. Se chiedono villa/lago scegli p2,p10. Se chiedono bilocale usa p4,p7. Se chiedono rustico usa p6. Se chiedono Lugano usa p9.
 
+## PRENOTAZIONE APPUNTAMENTO GUIDATA
+Se l'utente chiede un appuntamento, una visita, o una prenotazione (incluso click sul bottone "📅 Appuntamento"), entra in BOOKING MODE:
+1. Chiedi la DATA PREFERITA ("Qual è la data che preferisci per una visita?")
+2. Chiedi il TIPO DI IMMOBILE ("Che tipo di immobile ti interessa? Villetta, appartamento, villa...?")
+3. Chiedi il BUDGET ("Quale budget hai in mente?")
+4. Chiedi NOME E EMAIL ("Perfect! Mi serve il tuo nome e email per contattarti")
+
+Quando hai TUTTI e 5 i dati (preferredDate, propertyType, budget, name, email), rispondi CON QUESTO JSON ESATTO:
+{"type":"booking","data":{"name":"...","email":"...","preferredDate":"...","propertyType":"...","budget":"..."},"confirmMessage":"Perfetto! 🎉 Ho registrato il tuo appuntamento per [data]. Il nostro team ti contatterà entro 24 ore per confermare."}
+
+Se l'utente fornisce dati già incompleti in una domanda (es. "Vorrei un appuntamento il 15 aprile per una villetta"), estrai quello che puoi e chiedi il resto.
+
 ## TUTTO IL RESTO
-Per domande sull'agenzia, appuntamenti, info, rispondi in testo libero (NON JSON). Tono caldo, professionale, conciso. Rispondi sempre in italiano.`;
+Per domande sull'agenzia, info generali, rispondi in testo libero (NON JSON). Tono caldo, professionale, conciso. Rispondi sempre in italiano.`;
 
 let history = [];
 let loading = false;
@@ -858,8 +870,27 @@ async function send() {
       if (parsed.type === 'properties' && parsed.ids?.length) {
         addPropertyCards(parsed.ids, parsed.message || 'Ecco alcune proposte per voi:');
         history.push({ role: 'assistant', content: reply });
+      } else if (parsed.type === 'booking' && parsed.data) {
+        // Handle booking
+        const bookingData = parsed.data;
+        const bookingRes = await fetch('https://menaggio-api.vercel.app/api/api_booking', {
+          method: 'POST',
+          body: JSON.stringify({
+            name: bookingData.name,
+            email: bookingData.email,
+            preferredDate: bookingData.preferredDate,
+            propertyType: bookingData.propertyType,
+            budget: bookingData.budget
+          })
+        });
+        if (bookingRes.ok) {
+          addBubble('ai', parsed.confirmMessage);
+          history.push({ role: 'assistant', content: reply });
+        } else {
+          throw new Error('Booking failed');
+        }
       } else {
-        throw new Error('not properties');
+        throw new Error('not properties or booking');
       }
     } catch {
       addBubble('ai', reply);
@@ -876,7 +907,11 @@ async function send() {
 
 function sendChip(btn) {
   const t = btn.textContent.replace(/^[^\s]+\s/,'').trim();
-  document.getElementById('inp').value = t;
+  if (t === 'Appuntamento') {
+    document.getElementById('inp').value = 'Vorrei prenotare un appuntamento';
+  } else {
+    document.getElementById('inp').value = t;
+  }
   send();
 }
 
