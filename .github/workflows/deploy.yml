@@ -1,0 +1,29 @@
+name: Deploy to Keliweb
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'immobiliare_sidebar.html'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to Keliweb via SFTP
+        uses: pressable/github-action-sftp@main
+        with:
+          host: ${{ secrets.SFTP_HOST }}
+          port: ${{ secrets.SFTP_PORT }}
+          username: ${{ secrets.SFTP_USER }}
+          password: ${{ secrets.SFTP_PASSWORD }}
+          localPath: ./immobiliare_sidebar.html
+          remotePath: /public_html/wp-content/plugins/immobiliare_sidebar.html
+
+      - name: Deployment notification
+        run: echo "✅ Deploy completato su Keliweb!"
