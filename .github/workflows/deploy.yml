@@ -16,15 +16,15 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Deploy to Keliweb via SFTP
-        uses: appleboy/sftp-action@master
-        with:
-          host: ${{ secrets.SFTP_HOST }}
-          port: ${{ secrets.SFTP_PORT }}
-          username: ${{ secrets.SFTP_USER }}
-          password: ${{ secrets.SFTP_PASSWORD }}
-          local_path: ./immobiliare_sidebar.html
-          remote_path: /public_html/wp-content/plugins/immobiliare_sidebar.html
-          rm: true
+        run: |
+          sudo apt-get update && sudo apt-get install -y lftp
+          lftp -e "
+            set sftp:auto-confirm yes
+            set sftp:connect-program ssh -p ${{ secrets.SFTP_PORT }}
+            open sftp://${{ secrets.SFTP_USER }}:${{ secrets.SFTP_PASSWORD }}@${{ secrets.SFTP_HOST }}
+            put -e ./immobiliare_sidebar.html /public_html/wp-content/plugins/immobiliare_sidebar.html
+            quit
+          "
 
       - name: Deployment notification
         run: echo "✅ Deploy completato su Keliweb!"
